@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {useSelector} from 'react-redux';
 import { Link } from "react-router-dom";
 
 export default function Products() {
@@ -7,16 +6,13 @@ export default function Products() {
     const [error, setError] = useState(null);
 
     const getProducts = useCallback(async () => {
-        let products = await fetch('') // Put the URL to get all products from the database
-            .then(response => {
-                return response.json()
+        try {
+            await fetch('').then(response => {
+                
             })
-            .then(jsonResponse => {
-                setProducts(products)
-            })
-            .catch(e => {
-                setError(e);
-            });
+        } catch (e) {
+
+        }
     }, []);
 
     useEffect(() => {
