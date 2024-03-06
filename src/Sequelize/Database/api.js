@@ -8,6 +8,7 @@ const Potions = require('./../Models/potions');
 const Ingredients = require('./../Models/ingredients');
 const User = require('./../Models/users');
 const {Op} = Sequelize;
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 3000;
@@ -37,7 +38,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/', (req, res) => {
-    res.send('Hello World');
+    const user = req.user || 'Guest';
+    res.render('home', {user});
 });
 
 // -------------------------------------------------------------------------------------
@@ -169,7 +171,39 @@ app.get('/profile/:id', (req, res) => {
 
 // -------------------------------------------------------------------------------------
     // Register a new user
-app.get
+app.get('/register', async (req, res) => {
+    const {email, username, password} = req.body;
+
+    try {
+        // Check if user already exist
+        const possibleUser = User.findOne({
+            where: {
+                email: email,
+                username: username
+            }
+        });
+        if (possibleUser) {
+            console.log('user already exist');
+            res.redirect('login');
+        }
+
+        // Secures the password
+        let saltRound = 4;
+        let salt = await bcrypt.genSalt(saltRound);
+        let hashedPw = await bcrypt.hash(password, salt);
+        let currentDate = new Date();
+        let d = `${currentDate.getFullYear()}/${currentDate.getMonth()}/${currentDate.getDate()} ${currentDate.getHours()}:${currentDate.getMinutes()}`;
+
+        const newUser = User.create({
+            username: username,
+            email: email,
+            password: hashedPw,
+            createdAt: d
+        });
+    } catch {
+
+    }
+});
 
 
 app.listen(PORT, () => {

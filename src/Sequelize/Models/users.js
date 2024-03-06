@@ -21,7 +21,7 @@ module.exports = sequelize.define('users', {
     },
     createdAt: {
         field: 'created_at',
-        type: Sequelize.TIME
+        type: Sequelize.STRING
     },
     lastLogin: {
         field: 'last_login',
