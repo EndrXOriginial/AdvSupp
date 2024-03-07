@@ -1,7 +1,5 @@
-const express = require('express'); 
-const session = require('express-session');
-const passport = require('passport');
-const bodyParser = require('body-parser');
+const express = require('express');
+const router = express.Router();
 const Sequelize = require('sequelize');
 const Products = require('./../Models/products');
 const Potions = require('./../Models/potions');
@@ -9,47 +7,10 @@ const Ingredients = require('./../Models/ingredients');
 const User = require('../Models/users');
 const {Op} = Sequelize;
 const bcrypt = require('bcrypt');
-require('./passport');
 
-const app = express();
-const PORT = 3000;
-const store = session.MemoryStore();
-
-app.use(session({
-    secret: 'advsuppBabyyyy',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: true,
-        httpOnly: true,
-        maxAge: 1000*60*60*3, // Cookie last 3h
-        sameSite: 'none'
-    },
-    store
-}));
-
-
-
-app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-// app.use(require('./routes'));
-
-app.get('/', (req, res) => {
-    const user = req.user || 'Guest';
-    // res.render('home', {user});
-    res.send('home');
-});
-
-// // -------------------------------------------------------------------------------------
-// // Get all products and adds a filter from the query to filter the results
-app.get('/products', (req, res) => {
+// -------------------------------------------------------------------------------------
+// Get all products and adds a filter from the query to filter the results
+router.get('/products', (req, res) => {
     let filter = {};
     let {q} = req.query;
     
@@ -69,7 +30,7 @@ app.get('/products', (req, res) => {
 });
 
 // Retrieve the id from the params of the request and find the matching product
-app.get('/product/:id', (req, res) => {
+router.get('/product/:id', (req, res) => {
     let {id} = req.params;
     Products.findByPk(id).then(product => {
         if (product) {
@@ -82,7 +43,7 @@ app.get('/product/:id', (req, res) => {
 
 // -------------------------------------------------------------------------------------
     //Get all potions with the filter from the query
-app.get('/potions', (req, res) => {
+router.get('/potions', (req, res) => {
     let filter = {};
     let {q} = req.query;
 
@@ -102,7 +63,7 @@ app.get('/potions', (req, res) => {
 });
 
     // Get the ID from the url and returns the matching potion
-app.get('/potions/:id', (req, res) => {
+router.get('/potions/:id', (req, res) => {
     let {id} = req.params;
 
     Potions.findByPk(id).then(potion => {
@@ -117,7 +78,7 @@ app.get('/potions/:id', (req, res) => {
 
 // -------------------------------------------------------------------------------------
     // Get all ingredients with an optional filter
-    app.get('/ingredients', (req, res) => {
+    router.get('/ingredients', (req, res) => {
         let filter = {};
         let {q} = req.query;
     
@@ -137,7 +98,7 @@ app.get('/potions/:id', (req, res) => {
     });
     
         // Get the ID from the url and returns the matching ingredient
-    app.get('/ingredients/:id', (req, res) => {
+    router.get('/ingredients/:id', (req, res) => {
         let {id} = req.params;
     
         Ingredients.findByPk(id).then(ingredient => {
@@ -152,18 +113,17 @@ app.get('/potions/:id', (req, res) => {
 
 // -------------------------------------------------------------------------------------
     // Login page
-app.get('/login', (req, res) => {
-    res.send('In the login');
-    // res.render('src/Components/User/login');
+router.get('/login', (req, res) => {
+    // res.render('../../Components/User/login');
+    res.render('src/Components/User/login');
 });
 
-app.post('/login', passport.authenticate('local', {failureRedirect: '/login', failureMessage: true}), (req, res) => {
-    console.log('in the post login');
-    res.redirect('products');
+router.post('/login', passport.authenticate('local', {failureRedirect: '/login', failureMessage: true}), (req, res) => {
+    res.redirect('/profile' + req.user);
 });
 
     // Get the current user by ID
-app.get('/profile/:id', (req, res) => {
+router.get('/profile/:id', (req, res) => {
     let {id} = req.params;
 
     User.findByPk(id).then(user => {
@@ -178,7 +138,7 @@ app.get('/profile/:id', (req, res) => {
 
 // -------------------------------------------------------------------------------------
     // Register a new user
-app.post('/register', async (req, res) => {
+router.post('/register', async (req, res) => {
     console.log(req.body);
     const {email, username, password} = req.body;
 
@@ -219,11 +179,8 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.get('/register', (req, res) => {
+router.get('/register', (req, res) => {
     res.send('render');
 });
 
-
-app.listen(PORT, () => {
-    console.log(`connected correctly to server at port ${PORT}`);
-})
+module.exports = router;
